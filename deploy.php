@@ -36,6 +36,11 @@ server('production', '120.24.65.9')
 
 
 // Tasks
+desc('Execute artisan migrate:install');
+task('artisan:migrate:install', function () {
+    $output = run('{{bin/php}} {{release_path}}/artisan migrate:install');
+    writeln('<info>' . $output . '</info>');
+});
 
 desc('Restart PHP-FPM service');
 task('php-fpm:restart', function () {
@@ -43,6 +48,13 @@ task('php-fpm:restart', function () {
     // /etc/sudoers: username ALL=NOPASSWD:/bin/systemctl restart php-fpm.service
     run('sudo service php7.0-fpm restart');
 });
+
+desc('Deploy your project');
+task('deploy', [
+    'artisan:migrate:install',
+    'artisan:migrate',
+]);
+
 after('deploy:symlink', 'php-fpm:restart');
 
 // [Optional] if deploy fails automatically unlock.
@@ -50,4 +62,6 @@ after('deploy:failed', 'deploy:unlock');
 
 // Migrate database before symlink new release.
 
-before('deploy:symlink', 'artisan:migrate');
+//before('deploy:symlink', );
+
+after('deploy', 'success');
